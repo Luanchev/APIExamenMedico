@@ -117,5 +117,104 @@ namespace Laboratorio.Infrastucture.Repositories.PacienteRepositories
 
         }
         #endregion
+
+
+
+
+        #region servicio obtener paciente por numero de documento
+        public async Task<ResponseService> GetPacienteByDocument(string NumDoc)//aqui declaro el metodo que trae todos los registros con parametro codigo
+        {
+            using (NpgsqlConnection conn = new NpgsqlConnection(connString)) //instanciar el objeto de la clase que hace la conexion con la bd
+            {
+                try
+                {
+                    await conn.OpenAsync(); //abrimos conexion con la bd
+                    string sentence = "SELECT * " +
+                        "FROM paciente AS P " +
+                        "JOIN tipodocumento AS TP ON P.IdTdFk = TP.IdTd " +
+                        $"where NumDoc = '{NumDoc}';";
+
+
+
+                    var cmd = new NpgsqlCommand(sentence, conn);// Crear objeto que ejecuta la sentencia en la base datos recibiendo como parametro la sentencia y la conexion de la base de datos
+                    cmd.CommandType = CommandType.Text;
+                    var reader = await cmd.ExecuteReaderAsync();
+                    PacienteDTO paciente = null;
+
+                    while (await reader.ReadAsync()) //mientras reader tenga registos por retornar va a ejecutarse
+                    {
+                        paciente = new PacienteDTO();
+
+                        if (reader["IdPaciente"] != DBNull.Value) // si IdExamen no es nulo entra en la funcion
+                        {
+                            paciente.IdPaciente = Convert.ToInt32(reader["IdPaciente"]); //lo que hacemos aca es asignarle a pruebaId el valor encontrado
+                        }
+
+                        if (reader["NumDoc"] != DBNull.Value)
+                        {
+                            paciente.NumDoc = Convert.ToString(reader["NumDoc"]);
+                        }
+
+                        if (reader["NombrePac"] != DBNull.Value)
+                        {
+                            paciente.NombrePac = Convert.ToString(reader["NombrePac"]);
+                        }
+
+                        if (reader["Apellido"] != DBNull.Value)
+                        {
+                            paciente.Apellido = Convert.ToString(reader["Apellido"]);
+                        }
+
+                        if (reader["FechaCump"] != DBNull.Value)
+                        {
+                            paciente.FechaCump = Convert.ToDateTime(reader["FechaCump"]);
+                        }
+
+                        if (reader["Edad"] != DBNull.Value)
+                        {
+                            paciente.Edad = Convert.ToInt32(reader["Edad"]);
+                        }
+                        if (reader["IdTdFk"] != DBNull.Value)
+                        {
+                            paciente.IdTdFk = Convert.ToInt32(reader["IdTdFk"]);
+                        }
+                        if (reader["TipoDoc"] != DBNull.Value)
+                        {
+                            paciente.TipoDoc = Convert.ToString(reader["TipoDoc"]);
+                        }
+
+                    }
+
+                    await conn.CloseAsync(); //cerrar la lectura de la ejecucion
+
+                    //validaciones
+
+                    if (paciente == null)
+                    {
+                        r.Status = 400;
+                        r.Message = "No se encontro ningun dato con el codigo seleccionado";
+                    }
+                    else
+                    {
+
+                        r.Data = paciente;
+                        r.Status = 200;
+                        r.Message = "Se ejecuto de manera correcta";
+
+                    }
+
+
+                    return r;
+
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+
+            }
+
+        }
+        #endregion
     }
 }

@@ -24,5 +24,25 @@ namespace APILaboratorio.Controllers
             var rService = await servicePaciente.GetPaciente(); 
             return Ok(rService);
         }
+
+        [HttpGet]
+        [Route("Paciente/NumeroDocumento/{NumDoc}")]
+        public async Task<IActionResult> GetPacienteByDocument([FromRoute] string NumDoc)
+        {
+            var rService = await servicePaciente.GetPacienteByDocument(NumDoc);
+
+            if (rService.Status == 400)
+            {
+                return NotFound(rService);
+            }
+            else if (rService.Status == 200)
+            {
+                return Ok(rService);
+            }
+            else
+            {
+                return BadRequest(rService);
+            }
+        }
     }
 }

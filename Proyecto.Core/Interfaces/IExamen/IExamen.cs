@@ -1,4 +1,5 @@
-﻿using Proyecto.Core.Entities;
+﻿using Laboratorio.Core.Entities;
+using Proyecto.Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace Laboratorio.Core.Interfaces.IExamen
         Task<ResponseService> CreateExam(ExamenDTO examen);
         Task<ResponseService> EditExam(ExamenDTO examen);
         Task<ResponseService> DeleteExam(int IdExamen);
-
+       
     }
 
     

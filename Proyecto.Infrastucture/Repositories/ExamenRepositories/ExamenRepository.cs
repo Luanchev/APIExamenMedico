@@ -1,5 +1,6 @@
 ﻿using Laboratorio.Core.Entities;
 using Laboratorio.Core.Interfaces.IExamen;
+using Laboratorio.Core.Interfaces.IPaciente;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using Proyecto.Core.Entities;
@@ -7,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -213,6 +215,7 @@ namespace Proyecto.Infrastucture.Repositories.ExamenRepositories
                     await conn.OpenAsync(); //abrimos conexion con la bd
 
 
+
                     //CONSULTA QUE NOS MUESTRA CON EL NUMERO DE DOCUMENTO DEL PACIENTE LA INFORMACION DEL EXAMEN QUE SE HIZO,
                     //CON LA INFORMACION DEL TIPO DE MUESTRA, Y LA INFORMACION IMPORTANTE DEL PACIENTE
                     string sentence = "SELECT " +
@@ -230,10 +233,13 @@ namespace Proyecto.Infrastucture.Repositories.ExamenRepositories
                         "P.APELLIDO, " +
                         "P.FECHACUMP, " +
                         "P.EDAD, " +
-                        "P.IDTDFK " +
+                        "P.IDTDFK, " +
+                        "TD.IDTD, " +
+                        "TD.TIPODOC " +
                         "FROM EXAMENMEDICO AS E " +
                         "JOIN tipomuestra AS TP ON E.IDMUESTRAFK = TP.IDMUESTRA " +
                         "JOIN paciente  AS P ON E.idpacientefk = P.idpaciente " +
+                        "JOIN tipodocumento AS TD ON P.idtdfk = TD.idtd " +
                         $"WHERE numdoc = '{numdoc}'; ";
 
 
@@ -242,113 +248,108 @@ namespace Proyecto.Infrastucture.Repositories.ExamenRepositories
                     var reader = await cmd.ExecuteReaderAsync();
 
 
-                    ExamenDTO examen = null;
-                    PacienteDTO paciente = null;
-                    TipoMuestraDTO muestra = null;
+                    ExamenCompletoDTO examenCompleto = null;
 
 
                     //inicializamos por fuera del while para que no se sobreescriban las listas
-                    List<ExamenDTO> ListExamenes = new List<ExamenDTO>();
-                    List<TipoMuestraDTO> ListMuestra = new List<TipoMuestraDTO>();
+                    List<ExamenCompletoDTO> ListExamenes = new List<ExamenCompletoDTO>();
                    
-
 
 
                     while (await reader.ReadAsync()) //mientras reader tenga registos por retornar va a ejecutarse
                     {
-
+                                               
+                        examenCompleto = new ExamenCompletoDTO();                          
                        
-                        examen = new ExamenDTO();                        
-                        paciente = new PacienteDTO();                        
-                        muestra = new TipoMuestraDTO();                            
-                       
-
 
                         if (reader["IdExamen"] != DBNull.Value) // si IdExamen no es nulo entra en la funcion
                         {
-                            examen.IdExamen = Convert.ToInt32(reader["IdExamen"]); //lo que hacemos aca es asignarle a pruebaId el valor encontrado
+                            examenCompleto.IdExamen = Convert.ToInt32(reader["IdExamen"]); //lo que hacemos aca es asignarle a pruebaId el valor encontrado
                         }
 
                         if (reader["Codigo"] != DBNull.Value)
                         {
-                            examen.Codigo = Convert.ToString(reader["Codigo"]);
+                            examenCompleto.Codigo = Convert.ToString(reader["Codigo"]);
                         }
 
                         if (reader["Nombre"] != DBNull.Value)
                         {
-                            examen.Nombre = Convert.ToString(reader["Nombre"]);
+                            examenCompleto.Nombre = Convert.ToString(reader["Nombre"]);
                         }
 
                         if (reader["Precio"] != DBNull.Value)
                         {
-                            examen.Precio = Convert.ToDouble(reader["Precio"]);
+                            examenCompleto.Precio = Convert.ToDouble(reader["Precio"]);
                         }
 
                         if (reader["Idmuestrafk"] != DBNull.Value)
                         {
-                            examen.IdMuestrafk = Convert.ToInt32(reader["Idmuestrafk"]);
+                            examenCompleto.IdMuestrafk = Convert.ToInt32(reader["Idmuestrafk"]);
                         }
 
                         if (reader["Idpacientefk"] != DBNull.Value)
                         {
-                            examen.IdPacientefk = Convert.ToInt32(reader["Idpacientefk"]);
+                            examenCompleto.IdPacientefk = Convert.ToInt32(reader["Idpacientefk"]);
                         }
 
 
-                        // aqui empezamos la validacion de TipoMuestraDTO
+                        // aqui empezamos la validacion de TipoMuestra
 
                         if (reader["idmuestra"] != DBNull.Value)
                         {
-                            muestra.IdMuestra = Convert.ToInt32(reader["idmuestra"]);
+                            examenCompleto.IdMuestrafk = Convert.ToInt32(reader["idmuestra"]);
                         }
 
                         if (reader["tipomuestra"] != DBNull.Value)
                         {
-                            muestra.TipoMuestra = Convert.ToString(reader["tipomuestra"]);
+                            examenCompleto.TipoMuestra = Convert.ToString(reader["tipomuestra"]);
                         }
 
 
-                        // aqui empezamos la validacion de PacienteDTO
+                        // aqui empezamos la validacion de Paciente
 
                         if (reader["idpaciente"] != DBNull.Value)
                         {
-                            paciente.IdPaciente = Convert.ToInt32(reader["idpaciente"]);
+                            examenCompleto.IdPaciente = Convert.ToInt32(reader["idpaciente"]);
                         }
 
                         if (reader["NumDoc"] != DBNull.Value)
                         {
-                            paciente.NumDoc = Convert.ToString(reader["NumDoc"]);
+                            examenCompleto.NumDoc = Convert.ToString(reader["NumDoc"]);
                         }
 
                         if (reader["nombrepac"] != DBNull.Value)
                         {
-                            paciente.NombrePac = Convert.ToString(reader["nombrepac"]);
+                            examenCompleto.NombrePac = Convert.ToString(reader["nombrepac"]);
                         }
 
                         if (reader["Apellido"] != DBNull.Value)
                         {
-                            paciente.Apellido = Convert.ToString(reader["Apellido"]);
+                            examenCompleto.Apellido = Convert.ToString(reader["Apellido"]);
                         }
 
                         if (reader["FechaCump"] != DBNull.Value)
                         {
-                            paciente.FechaCump = Convert.ToDateTime(reader["FechaCump"]);
+                            examenCompleto.FechaCump = Convert.ToDateTime(reader["FechaCump"]);
                         }
 
                         if (reader["edad"] != DBNull.Value)
                         {
-                            paciente.Edad = Convert.ToInt32(reader["edad"]);
+                            examenCompleto.Edad = Convert.ToInt32(reader["edad"]);
                         }
 
                         if (reader["IdTdFk"] != DBNull.Value)
                         {
-                            paciente.IdTdFk = Convert.ToInt32(reader["IdTdFk"]);
+                            examenCompleto.IdTdFk = Convert.ToInt32(reader["IdTdFk"]);
+                        }
+                        if (reader["TipoDoc"] != DBNull.Value)
+                        {
+                            examenCompleto.TipoDoc = Convert.ToString(reader["TipoDoc"]);
                         }
 
+
                         //agregamos en cada lista para agregar si hay varios examenes con la misma lista
-                        ListExamenes.Add(examen);
-                        ListMuestra.Add(muestra);
-                        
+                        ListExamenes.Add(examenCompleto);                    
 
 
                     }                  
@@ -357,7 +358,7 @@ namespace Proyecto.Infrastucture.Repositories.ExamenRepositories
 
                     //validaciones
 
-                    if (paciente == null)
+                    if (examenCompleto == null)
                     {
                         r.Status = 400;
                         r.Message = "Con el numero de documento registrado no se encuentra ningun examen";
@@ -365,7 +366,7 @@ namespace Proyecto.Infrastucture.Repositories.ExamenRepositories
                     }
                     else
                     {
-                        r.Data = new { Examen = ListExamenes, Muestra = ListMuestra, Paciente = paciente };
+                        r.Data = new { Examen = ListExamenes };
                         r.Status = 200;
                         r.Message = "Se ejecuto de manera correcta";
                     }
@@ -444,6 +445,8 @@ namespace Proyecto.Infrastucture.Repositories.ExamenRepositories
                         r.Message = "No se puede editar el camion ya que no se encuentra en la base de datos";
                         return r;
                     }
+
+
                     string sentence = "UPDATE examenmedico " +
                               "SET codigo = '" + examen.Codigo + "', " +
                               "nombre = '" + examen.Nombre + "', " +
@@ -546,7 +549,7 @@ namespace Proyecto.Infrastucture.Repositories.ExamenRepositories
         #endregion
 
 
-        #region Servicio para validar el IdCamion
+        #region Servicio para validar el Idexamen
         public async Task<int> ValidateIdExam(int IdExamen, NpgsqlConnection conn)
         {
             try
@@ -579,6 +582,10 @@ namespace Proyecto.Infrastucture.Repositories.ExamenRepositories
             }
         }
         #endregion
+
+
+       
+
 
     }
 }

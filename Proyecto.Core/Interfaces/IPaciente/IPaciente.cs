@@ -10,6 +10,7 @@ namespace Laboratorio.Core.Interfaces.IPaciente
     public interface IPaciente
     {
         Task<ResponseService> GetPaciente();
+        Task<ResponseService> GetPacienteByDocument(string NumDoc);
 
     }
 }

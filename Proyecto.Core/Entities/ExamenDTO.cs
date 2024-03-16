@@ -15,6 +15,7 @@ namespace Proyecto.Core.Entities
         public string Nombre { get; set; }
         public double Precio { get; set;}
         public int IdMuestrafk {  get; set; }
+        public string TipoMuestra { get; set; }
         public int IdPacientefk { get; set; }
 
     }

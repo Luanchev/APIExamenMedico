@@ -1,4 +1,5 @@
-﻿using Laboratorio.Core.Interfaces.IExamen;
+﻿using Laboratorio.Core.Entities;
+using Laboratorio.Core.Interfaces.IExamen;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using Proyecto.Core.Entities;
@@ -50,7 +51,7 @@ namespace APIProyectoPrueba.Controllers
 
 
         [HttpGet]
-        [Route("Examen/DocPac/{numdoc}")]
+        [Route("examen/patient/identification/{numdoc}")]
         public async Task<IActionResult> GetExamenByDP([FromRoute] string numdoc)
         {
             var rService = await serviceExamen.GetExamenByDP(numdoc);

@@ -15,7 +15,7 @@ namespace Laboratorio.Core.Entities
         public DateTime FechaCump { get; set; }
         public int Edad { get; set; } 
         public int IdTdFk { get; set; }
-     
+        public string TipoDoc {  get; set; }     
 
     }
 }
